@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -20,15 +20,19 @@ import { useRouter } from "next/navigation"
 import { formatDuration, formatTime, formatDate } from "@/lib/utils"
 import { AnalyticsDashboard } from "./analytics-dashboard"
 import { NotesDashboard } from "./notes-dashboard"
-import type { User, Category, Task, AnalyticsData } from "@/lib/types"
+import type { User, Category, Task } from "@/lib/types"
 
 type DashboardClientProps = {
   user: User
-  initialCategories: Category[]
-  initialTasks: Task[]
+  initialCategories?: Category[]
+  initialTasks?: Task[]
 }
 
-export default function DashboardClient({ user, initialCategories, initialTasks }: DashboardClientProps) {
+export default function DashboardClient({
+  user,
+  initialCategories = [],
+  initialTasks = []
+}: DashboardClientProps) {
   const router = useRouter()
   const supabase = createClient()
   const [activeTab, setActiveTab] = useState<'tracking' | 'analytics' | 'notes'>('tracking')
@@ -36,7 +40,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
   const [isAddingCategory, setIsAddingCategory] = useState(false)
   const [newCategory, setNewCategory] = useState({ name: '', color: '#f59e0b', icon: 'Coffee' })
   const [editingCategory, setEditingCategory] = useState<string | null>(null)
-  const [categories, setCategories] = useState<Category[]>(initialCategories)
+  const [categories, setCategories] = useState<Category[]>(initialCategories || [])
   const [tasks, setTasks] = useState<Task[]>(initialTasks || [])
   const [newTask, setNewTask] = useState({ title: '', description: '' })
   const [editingTask, setEditingTask] = useState<string | null>(null)
@@ -58,17 +62,34 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
     '#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'
   ]
 
+  // Ensure we always have arrays
+  const safeCategories = useMemo(() => {
+    return Array.isArray(categories) ? categories : []
+  }, [categories])
+
+  const safeTasks = useMemo(() => {
+    return Array.isArray(tasks) ? tasks : []
+  }, [tasks])
+
   // Load notes from localStorage on mount
   useEffect(() => {
-    const savedNotes = localStorage.getItem('coffee-time-notes')
-    if (savedNotes) {
-      setNotes(JSON.parse(savedNotes))
+    try {
+      const savedNotes = localStorage.getItem('coffee-time-notes')
+      if (savedNotes) {
+        setNotes(JSON.parse(savedNotes))
+      }
+    } catch (error) {
+      console.error('Error loading notes:', error)
     }
   }, [])
 
   // Save notes to localStorage when they change
   useEffect(() => {
-    localStorage.setItem('coffee-time-notes', JSON.stringify(notes))
+    try {
+      localStorage.setItem('coffee-time-notes', JSON.stringify(notes))
+    } catch (error) {
+      console.error('Error saving notes:', error)
+    }
   }, [notes])
 
   // Update timer every second for active task
@@ -76,7 +97,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
     if (activeTaskId) {
       intervalRef.current = setInterval(() => {
         setTimer(prev => prev + 1)
-        setTasks(prev => prev.map(task =>
+        setTasks(prev => (Array.isArray(prev) ? prev : []).map(task =>
           task.id === activeTaskId ? { ...task, duration: task.duration + 1 } : task
         ))
       }, 1000)
@@ -92,31 +113,35 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
 
   // Calculate productivity score
   useEffect(() => {
-    if (!tasks || !Array.isArray(tasks)) {
-      setProductivityScore(0);
-      return;
+    if (!safeTasks.length) {
+      setProductivityScore(0)
+      return
     }
 
     try {
-      const todayTasks = (tasks || []).filter(t => {
-        if (!t?.created_at) return false;
+      const todayTasks = safeTasks.filter(t => {
+        if (!t?.created_at) return false
         try {
-          const taskDate = new Date(t.created_at).toDateString();
-          const today = new Date().toDateString();
-          return taskDate === today;
+          const taskDate = new Date(t.created_at).toDateString()
+          const today = new Date().toDateString()
+          return taskDate === today
         } catch (e) {
-          return false;
+          return false
         }
-      });
+      })
 
-      const completed = (todayTasks||[]).filter(t => t?.status === 'completed').length;
-      const total = todayTasks.length > 0 ? todayTasks.length : 1;
-      setProductivityScore(Math.round((completed / total) * 100));
+      if (todayTasks.length === 0) {
+        setProductivityScore(0)
+        return
+      }
+
+      const completed = todayTasks.filter(t => t?.status === 'completed').length
+      setProductivityScore(Math.round((completed / todayTasks.length) * 100))
     } catch (error) {
-      console.error('Error calculating productivity score:', error);
-      setProductivityScore(0);
+      console.error('Error calculating productivity score:', error)
+      setProductivityScore(0)
     }
-  }, [tasks]);
+  }, [safeTasks])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -126,141 +151,163 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
   const addCategory = async () => {
     if (!newCategory.name.trim()) return
 
-    const { data, error } = await supabase
-      .from('categories')
-      .insert({
-        user_id: user.id,
-        name: newCategory.name,
-        color: newCategory.color,
-        icon: newCategory.icon
-      })
-      .select()
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          user_id: user.id,
+          name: newCategory.name,
+          color: newCategory.color,
+          icon: newCategory.icon
+        })
+        .select()
+        .single()
 
-    if (!error && data) {
-      setCategories([...categories, data])
-      setNewCategory({ name: '', color: '#f59e0b', icon: 'Coffee' })
-      setIsAddingCategory(false)
+      if (!error && data) {
+        setCategories([...safeCategories, data])
+        setNewCategory({ name: '', color: '#f59e0b', icon: 'Coffee' })
+        setIsAddingCategory(false)
+      }
+    } catch (error) {
+      console.error('Error adding category:', error)
+      alert('Failed to add category')
     }
   }
 
   const updateCategory = async (categoryId: string, updates: Partial<Category>) => {
-    const { error } = await supabase
-      .from('categories')
-      .update(updates)
-      .eq('id', categoryId)
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update(updates)
+        .eq('id', categoryId)
 
-    if (!error) {
-      setCategories(categories.map(c => c.id === categoryId ? { ...c, ...updates } : c))
-      setEditingCategory(null)
+      if (!error) {
+        setCategories(safeCategories.map(c => c.id === categoryId ? { ...c, ...updates } : c))
+        setEditingCategory(null)
+      }
+    } catch (error) {
+      console.error('Error updating category:', error)
     }
   }
 
   const deleteCategory = async (categoryId: string) => {
-    // First delete all tasks in this category
-    await supabase.from('tasks').delete().eq('category_id', categoryId)
+    try {
+      await supabase.from('tasks').delete().eq('category_id', categoryId)
+      const { error } = await supabase.from('categories').delete().eq('id', categoryId)
 
-    // Then delete the category
-    const { error } = await supabase
-      .from('categories')
-      .delete()
-      .eq('id', categoryId)
-
-    if (!error) {
-      setCategories((categories || []).filter(c => c.id !== categoryId))
-      setTasks((tasks || []).filter(t => t.category_id !== categoryId))
-      if (activeCategory === categoryId) setActiveCategory(null)
+      if (!error) {
+        setCategories(safeCategories.filter(c => c.id !== categoryId))
+        setTasks(safeTasks.filter(t => t.category_id !== categoryId))
+        if (activeCategory === categoryId) setActiveCategory(null)
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error)
     }
   }
 
   const addTask = async () => {
     if (!newTask.title.trim() || !activeCategory) return
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert({
-        user_id: user.id,
-        category_id: activeCategory,
-        title: newTask.title,
-        description: newTask.description,
-        status: 'idle',
-        duration: 0
-      })
-      .select(`
-        *,
-        category:categories(*)
-      `)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          user_id: user.id,
+          category_id: activeCategory,
+          title: newTask.title,
+          description: newTask.description,
+          status: 'idle',
+          duration: 0
+        })
+        .select()
+        .single()
 
-    if (!error && data) {
-      setTasks([data, ...tasks])
-      setNewTask({ title: '', description: '' })
+      if (!error && data) {
+        setTasks([data, ...safeTasks])
+        setNewTask({ title: '', description: '' })
+      }
+    } catch (error) {
+      console.error('Error adding task:', error)
+      alert('Failed to add task')
     }
   }
 
   const startTask = async (taskId: string) => {
-    if (activeTaskId) {
-      await stopTask(activeTaskId)
-    }
+    try {
+      if (activeTaskId) {
+        await stopTask(activeTaskId)
+      }
 
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        status: 'running',
-        start_time: new Date().toISOString()
-      })
-      .eq('id', taskId)
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          status: 'running',
+          start_time: new Date().toISOString()
+        })
+        .eq('id', taskId)
 
-    if (!error) {
-      setActiveTaskId(taskId)
-      setFocusMode(true)
+      if (!error) {
+        setActiveTaskId(taskId)
+        setFocusMode(true)
+      }
+    } catch (error) {
+      console.error('Error starting task:', error)
     }
   }
 
   const stopTask = async (taskId: string) => {
-    const task = (tasks || []).find(t => t.id === taskId)
-    if (!task) return
+    try {
+      const task = safeTasks.find(t => t.id === taskId)
+      if (!task) return
 
-    const { error } = await supabase
-      .from('tasks')
-      .update({
-        status: 'completed',
-        end_time: new Date().toISOString(),
-        duration: task.duration
-      })
-      .eq('id', taskId)
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          status: 'completed',
+          end_time: new Date().toISOString(),
+          duration: task.duration
+        })
+        .eq('id', taskId)
 
-    if (!error) {
-      setActiveTaskId(null)
-      setFocusMode(false)
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, status: 'completed', end_time: new Date().toISOString() } : t))
+      if (!error) {
+        setActiveTaskId(null)
+        setFocusMode(false)
+        setTasks(safeTasks.map(t => t.id === taskId ? { ...t, status: 'completed' as const, end_time: new Date().toISOString() } : t))
+      }
+    } catch (error) {
+      console.error('Error stopping task:', error)
     }
   }
 
   const updateTask = async (taskId: string, updates: Partial<Task>) => {
-    const { error } = await supabase
-      .from('tasks')
-      .update(updates)
-      .eq('id', taskId)
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId)
 
-    if (!error) {
-      setTasks(tasks.map(t => t.id === taskId ? { ...t, ...updates } : t))
-      setEditingTask(null)
+      if (!error) {
+        setTasks(safeTasks.map(t => t.id === taskId ? { ...t, ...updates } : t))
+        setEditingTask(null)
+      }
+    } catch (error) {
+      console.error('Error updating task:', error)
     }
   }
 
   const deleteTask = async (taskId: string) => {
-    if (activeTaskId === taskId) {
-      await stopTask(taskId)
-    }
+    try {
+      if (activeTaskId === taskId) {
+        await stopTask(taskId)
+      }
 
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId)
+      const { error } = await supabase.from('tasks').delete().eq('id', taskId)
 
-    if (!error) {
-      setTasks((tasks || []).filter(t => t.id !== taskId))
+      if (!error) {
+        setTasks(safeTasks.filter(t => t.id !== taskId))
+      }
+    } catch (error) {
+      console.error('Error deleting task:', error)
     }
   }
 
@@ -268,24 +315,51 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
     setNotes(prev => ({ ...prev, [categoryId]: content }))
   }
 
-  const filteredTasks = (tasks || []).filter(task => {
-    if (searchQuery) {
-      return task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-             task.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    }
-    if (activeCategory) {
-      return task.category_id === activeCategory
-    }
-    return true
-  })
+  const filteredTasks = useMemo(() => {
+    return safeTasks.filter(task => {
+      if (!task) return false
 
-  const currentTask = (tasks || []).find(t => t.id === activeTaskId)
-  const activeCategoryData = (categories || []).find(c => c.id === activeCategory)
+      try {
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          return (
+            task.title?.toLowerCase().includes(query) ||
+            task.description?.toLowerCase().includes(query)
+          )
+        }
+        if (activeCategory) {
+          return task.category_id === activeCategory
+        }
+        return true
+      } catch (error) {
+        return false
+      }
+    })
+  }, [safeTasks, searchQuery, activeCategory])
+
+  const todaysFocusTime = useMemo(() => {
+    return safeTasks
+      .filter(t => {
+        try {
+          return new Date(t.created_at).toDateString() === new Date().toDateString()
+        } catch {
+          return false
+        }
+      })
+      .reduce((sum, t) => sum + (t.duration || 0), 0)
+  }, [safeTasks])
+
+  const activeTasksCount = useMemo(() => {
+    return safeTasks.filter(t => t?.status === 'running').length
+  }, [safeTasks])
+
+  const currentTask = safeTasks.find(t => t.id === activeTaskId)
+  const activeCategoryData = safeCategories.find(c => c.id === activeCategory)
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-stone-50 via-amber-50/30 to-orange-50/20 transition-all duration-300 ${focusMode ? 'bg-gradient-to-br from-stone-950 via-stone-900 to-stone-950' : ''}`}>
       {/* Floating Timer for Analytics Tab */}
-      {activeTab === 'analytics' && activeTaskId && (
+      {activeTab === 'analytics' && activeTaskId && currentTask && (
         <div className="fixed bottom-6 right-6 z-50 animate-slide-up">
           <Card className="p-4 bg-gradient-to-br from-amber-600 to-orange-600 text-white shadow-2xl border-amber-500/50 backdrop-blur-sm">
             <div className="flex items-center gap-3">
@@ -295,7 +369,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
               <div>
                 <p className="text-sm font-medium opacity-90">Currently Tracking</p>
                 <p className="text-xl font-bold tracking-tight">{formatDuration(timer)}</p>
-                <p className="text-xs opacity-80">{currentTask?.title}</p>
+                <p className="text-xs opacity-80">{currentTask.title}</p>
               </div>
             </div>
           </Card>
@@ -303,7 +377,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
       )}
 
       {/* Focus Mode Overlay */}
-      {focusMode && (
+      {focusMode && currentTask && (
         <div className="fixed inset-0 bg-gradient-to-br from-stone-950/95 via-stone-900/95 to-stone-950/95 z-50 flex flex-col items-center justify-center p-6">
           <div className="text-center max-w-2xl">
             <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-amber-600 to-orange-600 mb-8 animate-pulse">
@@ -314,11 +388,11 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
               {formatDuration(timer)}
             </p>
             <div className="space-y-4">
-              <p className="text-xl text-amber-200">{currentTask?.title}</p>
-              <p className="text-stone-400">{currentTask?.description}</p>
+              <p className="text-xl text-amber-200">{currentTask.title}</p>
+              <p className="text-stone-400">{currentTask.description}</p>
               <div className="flex gap-4 justify-center">
                 <Button
-                  onClick={() => currentTask && stopTask(currentTask.id)}
+                  onClick={() => stopTask(currentTask.id)}
                   size="lg"
                   className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white px-8 h-14 rounded-xl text-lg"
                 >
@@ -425,15 +499,15 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
                       </div>
                       <div>
                         <p className="font-medium text-stone-900">All Tasks</p>
-                        <p className="text-xs text-stone-500">{tasks.length} tasks</p>
+                        <p className="text-xs text-stone-500">{safeTasks.length} tasks</p>
                       </div>
                     </div>
                   </button>
 
-                  {categories.map(category => {
+                  {safeCategories.map(category => {
                     const Icon = icons[category.icon as keyof typeof icons] || Coffee
-                    const categoryTasks = (tasks || []).filter(t => t.category_id === category.id)
-                    const totalTime = (categoryTasks || []).reduce((sum, t) => sum + t.duration, 0)
+                    const categoryTasks = safeTasks.filter(t => t.category_id === category.id)
+                    const totalTime = categoryTasks.reduce((sum, t) => sum + (t.duration || 0), 0)
 
                     return (
                       <div
@@ -549,8 +623,8 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
               {/* Navigation Tabs */}
               <div className="p-2">
                 {(['tracking', 'analytics', 'notes'] as const).map(tab => {
-                  const icons = { tracking: Clock, analytics: BarChart3, notes: FileText }
-                  const Icon = icons[tab]
+                  const tabIcons = { tracking: Clock, analytics: BarChart3, notes: FileText }
+                  const Icon = tabIcons[tab]
                   return (
                     <button
                       key={tab}
@@ -577,9 +651,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
                       <div>
                         <p className="text-sm text-stone-600 mb-1">Today's Focus</p>
                         <p className="text-2xl font-bold text-stone-900">
-                          {formatDuration((tasks || []).filter(t =>
-                            new Date(t.created_at).toDateString() === new Date().toDateString()
-                          ).reduce((sum, t) => sum + t.duration, 0))}
+                          {formatDuration(todaysFocusTime)}
                         </p>
                       </div>
                       <div className="p-2 bg-amber-100 rounded-lg">
@@ -592,9 +664,7 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-stone-600 mb-1">Active Tasks</p>
-                        <p className="text-2xl font-bold text-stone-900">
-                          {(tasks || []).filter(t => t.status === 'running').length}
-                        </p>
+                        <p className="text-2xl font-bold text-stone-900">{activeTasksCount}</p>
                       </div>
                       <div className="p-2 bg-green-100 rounded-lg">
                         <Zap className="w-5 h-5 text-green-700" />
@@ -614,7 +684,6 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
                     </div>
                   </Card>
                 </div>
-
                 {/* Add Task Form */}
                 <Card className="p-6 border border-stone-200/50 bg-white/50 backdrop-blur-sm shadow-lg">
                   <h2 className="text-xl font-bold text-stone-900 mb-4 flex items-center gap-2">
@@ -643,12 +712,18 @@ export default function DashboardClient({ user, initialCategories, initialTasks 
                     <div className="flex gap-2">
                       <Button
                         onClick={addTask}
-                        disabled={!newTask.title.trim() || !activeCategory}
-                        className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-medium"
+                        disabled={!newTask.title.trim() || !activeCategory || !categories || categories.length === 0}
+                        className="flex-1 h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Plus className="w-5 h-5 mr-2" />
-                        Add Task
+                        {!activeCategory ? 'Select a category first' : 'Add Task'}
                       </Button>
+
+                      {!activeCategory && (
+                        <p className="text-sm text-amber-600 text-center">
+                          ← Select a category from the sidebar to create tasks
+                        </p>
+                      )}
                     </div>
                   </div>
                 </Card>

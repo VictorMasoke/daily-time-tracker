@@ -278,14 +278,14 @@ export default function LandingPage() {
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-500 transition-all group-hover:w-full"></span>
               </Link>
               <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl hover:scale-105 transition-bounce text-sm sm:text-base px-4 sm:px-6">
-                <Link href="/login">Get Started</Link>
+                <Link href="login">Get Started</Link>
               </Button>
             </div>
 
             {/* Mobile Menu Button - Optional */}
             <div className="md:hidden">
               <Button className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg hover:shadow-xl text-sm px-4">
-                <Link href="/login">Login</Link>
+                <Link href="login">Login</Link>
               </Button>
             </div>
           </div>

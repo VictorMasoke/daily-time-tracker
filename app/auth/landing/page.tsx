@@ -1,6 +1,6 @@
 "use client"
 
-import { Coffee, Sparkles, TrendingUp, Target, Zap, Users, Quote, Github, Mail, ArrowRight, CheckCircle, Star } from "lucide-react"
+import { Coffee, Sparkles, TrendingUp, Target, Zap, Users, Quote, Github, Mail, ArrowRight, CheckCircle, Star, Facebook, Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
@@ -297,11 +297,11 @@ export default function LandingPage() {
         {/* Enhanced Animated Background */}
         <div className="absolute inset-0 z-0">
           {/* Base gradient with subtle animation */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-orange-50" />
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-100 via-white to-orange-100" />
 
           {/* Animated coffee rings with parallax */}
           <div
-            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full border border-amber-300/30 animate-pulse-subtle"
+            className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full border border-amber-30/30 animate-pulse-subtle"
             style={{
               transform: `translate(${parallaxX * 2}px, ${parallaxY * 2}px)`,
               animationDuration: '12s'
@@ -588,6 +588,181 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="py-20 bg-gradient-to-b from-white to-stone-50 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-20 w-96 h-96 bg-amber-300 rounded-full blur-3xl animate-pulse-subtle" />
+          <div className="absolute bottom-20 right-20 w-80 h-80 bg-orange-300 rounded-full blur-3xl animate-pulse-subtle" style={{ animationDelay: '3s' }} />
+        </div>
+
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
+          <div className="text-center mb-16 animate-fade-up">
+            <h2 className="text-4xl font-semibold text-stone-900 mb-4">
+              See Coffee Time in Action
+            </h2>
+            <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+              Watch how Coffee Time transforms your workflow in under 2 minutes
+            </p>
+          </div>
+
+          <div className="max-w-5xl mx-auto animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-200/50 hover:border-amber-300 transition-smooth group">
+              {/* Video placeholder with play button */}
+              <div className="aspect-video bg-gradient-to-br from-amber-100 via-orange-50 to-stone-100 flex items-center justify-center relative">
+                {/* Play button overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-stone-900/40 to-stone-900/20 group-hover:from-stone-900/30 group-hover:to-stone-900/10 transition-all duration-500" />
+
+                <button className="relative z-10 w-24 h-24 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-white transition-all duration-300 group-hover:shadow-amber-300/50">
+                  <div className="w-0 h-0 border-t-[16px] border-t-transparent border-l-[28px] border-l-amber-600 border-b-[16px] border-b-transparent ml-2" />
+                </button>
+
+                {/* Animated mockup screens in background */}
+                <div className="absolute inset-0 flex items-center justify-center gap-8 opacity-60">
+                  <div className="bg-white rounded-2xl p-4 shadow-xl transform rotate-6 hover:rotate-0 transition-transform">
+                    <div className="w-40 h-24 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg" />
+                  </div>
+                  <div className="bg-white rounded-2xl p-4 shadow-xl transform -rotate-6 hover:rotate-0 transition-transform">
+                    <div className="w-40 h-24 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Video duration badge */}
+              <div className="absolute bottom-6 right-6 bg-stone-900/80 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium">
+                1:47
+              </div>
+            </div>
+
+            {/* Video features */}
+            <div className="grid md:grid-cols-3 gap-6 mt-12">
+              {[
+                { title: "Quick Setup", desc: "Get started in 30 seconds" },
+                { title: "Smart Tracking", desc: "Automatic session detection" },
+                { title: "Beautiful Insights", desc: "Visual progress reports" }
+              ].map((feature, index) => (
+                <div
+                  key={index}
+                  className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-stone-200/50 hover:border-amber-300 hover:shadow-lg transition-smooth animate-fade-in"
+                  style={{ animationDelay: `${0.4 + index * 0.1}s` }}
+                >
+                  <h3 className="font-semibold text-stone-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm text-stone-600">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-br from-amber-200/30 to-orange-200/30 rounded-full blur-3xl animate-pulse-subtle" />
+        </div>
+
+        <div className="container mx-auto px-6 max-w-6xl relative z-10">
+          <div className="text-center mb-16 animate-fade-up">
+            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-amber-100 border border-amber-200">
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-900">SIMPLE PRICING</span>
+            </div>
+            <h2 className="text-4xl font-semibold text-stone-900 mb-4">
+              Brew More, Pay Less
+            </h2>
+            <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+              Choose the plan that fits your productivity journey
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Monthly Plan */}
+            <div className="bg-white rounded-3xl p-8 border-2 border-stone-200 hover:border-amber-300 transition-smooth hover:shadow-2xl hover:-translate-y-2 animate-fade-in group">
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-semibold text-stone-900 mb-2 group-hover:text-amber-600 transition-colors">
+                  Monthly
+                </h3>
+                <div className="flex items-baseline justify-center gap-2 mb-4">
+                  <span className="text-5xl font-bold text-stone-900">$1</span>
+                  <span className="text-stone-600">/month</span>
+                </div>
+                <p className="text-stone-600">Perfect for getting started</p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Unlimited work sessions",
+                  "Coffee break tracking",
+                  "Progress insights",
+                  "Google Sign-in",
+                  "Mobile & desktop access",
+                  "Priority support",
+                  "Focus Music"
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                    <span className="text-stone-700">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button className="w-full h-12 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-bounce">
+                Start Monthly
+              </Button>
+            </div>
+
+            {/* Yearly Plan */}
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-8 border-2 border-amber-300 hover:border-amber-400 transition-smooth hover:shadow-2xl hover:-translate-y-2 animate-fade-in relative group" style={{ animationDelay: '0.1s' }}>
+              {/* Popular badge */}
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-6 py-2 rounded-full text-sm font-semibold shadow-lg">
+                BEST VALUE
+              </div>
+
+              <div className="text-center mb-8">
+                <h3 className="text-2xl font-semibold text-stone-900 mb-2 group-hover:text-amber-600 transition-colors">
+                  Yearly
+                </h3>
+                <div className="flex items-baseline justify-center gap-2 mb-2">
+                  <span className="text-5xl font-bold text-stone-900">$10</span>
+                  <span className="text-stone-600">/year</span>
+                </div>
+                <div className="inline-block bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                  Save 17% ($2)
+                </div>
+                <p className="text-stone-600">Commit to better productivity</p>
+              </div>
+
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Everything in Monthly",
+                  "Advanced analytics",
+                  "Custom work themes",
+                  "Export your data",
+                  "Early access to features",
+                  "VIP support"
+                ].map((feature, index) => (
+                  <li key={index} className="flex items-center gap-3">
+                    <CheckCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                    <span className="text-stone-700 font-medium">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Button className="w-full h-12 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-bounce">
+                Start Yearly
+              </Button>
+            </div>
+          </div>
+
+          {/* Money-back guarantee */}
+          <div className="text-center mt-12 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+            <p className="text-stone-600 flex items-center justify-center gap-2">
+              <CheckCircle className="w-5 h-5 text-green-500" />
+              <span>30-day money-back guarantee. Cancel anytime.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+
       {/* Testimonials */}
       <section id="testimonials" className="py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
         {/* Background decoration */}
@@ -688,6 +863,18 @@ export default function LandingPage() {
                 >
                   <Mail className="w-6 h-6" />
                 </a>
+                <a
+                  href="mailto:vmasoke2@gmail.com"
+                  className="w-12 h-12 rounded-full bg-stone-800 hover:bg-amber-600 flex items-center justify-center transition-bounce hover:scale-110 hover:shadow-lg"
+                >
+                  <Instagram className="w-6 h-6" />
+                </a>
+                <a
+                  href="mailto:vmasoke2@gmail.com"
+                  className="w-12 h-12 rounded-full bg-stone-800 hover:bg-amber-600 flex items-center justify-center transition-bounce hover:scale-110 hover:shadow-lg"
+                >
+                  <Facebook className="w-6 h-6" />
+                </a>
               </div>
             </div>
 
@@ -698,9 +885,14 @@ export default function LandingPage() {
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3 hover:translate-x-2 transition-smooth cursor-pointer">
                   <Mail className="w-5 h-5 text-amber-400" />
-                  <span className="text-stone-400 hover:text-white transition-colors">
-                    vmasoke2@gmail.com
-                  </span>
+                  <a
+                    href="mailto:vmasoke2@gmail.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-stone-400 hover:text-white transition-colors"
+                  >
+                    Victor Masoke
+                  </a>
                 </div>
                 <div className="flex items-center gap-3 hover:translate-x-2 transition-smooth cursor-pointer">
                   <Github className="w-5 h-5 text-amber-400" />

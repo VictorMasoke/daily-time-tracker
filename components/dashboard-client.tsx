@@ -21,6 +21,7 @@ import { formatDuration, formatTime, formatDate } from "@/lib/utils"
 import { AnalyticsDashboard } from "./analytics-dashboard"
 import { NotesDashboard } from "./notes-dashboard"
 import type { User, Category, Task } from "@/lib/types"
+import MusicPlayer from "./music-player"
 
 type DashboardClientProps = {
   user: User
@@ -35,7 +36,7 @@ export default function DashboardClient({
 }: DashboardClientProps) {
   const router = useRouter()
   const supabase = createClient()
-  const [activeTab, setActiveTab] = useState<'tracking' | 'analytics' | 'notes'>('tracking')
+  const [activeTab, setActiveTab] = useState<'tracking' | 'analytics' | 'notes' | 'music'>('tracking')
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [isAddingCategory, setIsAddingCategory] = useState(false)
   const [newCategory, setNewCategory] = useState({ name: '', color: '#f59e0b', icon: 'Coffee' })
@@ -622,9 +623,14 @@ export default function DashboardClient({
 
               {/* Navigation Tabs */}
               <div className="p-2">
-                {(['tracking', 'analytics', 'notes'] as const).map(tab => {
-                  const tabIcons = { tracking: Clock, analytics: BarChart3, notes: FileText }
-                  const Icon = tabIcons[tab]
+                {(['tracking', 'analytics', 'notes', 'music'] as const).map(tab => {
+                  const icons = {
+                    tracking: Clock,
+                    analytics: BarChart3,
+                    notes: FileText,
+                    music: Music
+                  }
+                  const Icon = icons[tab]
                   return (
                     <button
                       key={tab}
@@ -891,6 +897,10 @@ export default function DashboardClient({
                 notes={notes}
                 onUpdateNote={updateNote}
               />
+            )}
+
+            {activeTab === 'music' && (
+              <MusicPlayer />
             )}
           </div>
         </div>

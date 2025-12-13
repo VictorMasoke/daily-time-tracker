@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { Coffee } from "lucide-react"
 import DashboardClient from "@/components/dashboard-client"
 import { Suspense } from "react"
+import { User } from "@/lib/types"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -15,6 +16,8 @@ export default async function DashboardPage() {
   if (error || !user) {
     redirect("/auth/login")
   }
+
+  const typedUser = user as User
 
   // Fetch user profile
   const { data: profile } = await supabase
@@ -40,9 +43,9 @@ export default async function DashboardPage() {
       </div>
     }>
       <DashboardClient
-        user={user}
+        user={typedUser}
         profile={profile}
-        initialEntries={entries || []}
+        initialTasks={entries || []}
       />
     </Suspense>
   )

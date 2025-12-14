@@ -17,6 +17,18 @@ export type Category = {
   notes?: string
 }
 
+export type Note = {
+  id: string
+  user_id: string
+  category_id: string | null
+  title: string
+  content: string
+  color: string
+  is_pinned: boolean
+  created_at: string
+  updated_at: string
+}
+
 export type Task = {
   id: string
   user_id: string

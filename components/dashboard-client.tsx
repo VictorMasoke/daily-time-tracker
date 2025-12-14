@@ -53,6 +53,8 @@ export default function DashboardClient({
   const [timer, setTimer] = useState(0)
   const [focusMode, setFocusMode] = useState(false)
   const [productivityScore, setProductivityScore] = useState(0)
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false)
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false)
 
   const icons = {
     Coffee, Music, BookOpen, Code, Briefcase, Dumbbell, Gamepad2, Palette,
@@ -894,17 +896,49 @@ export default function DashboardClient({
             {activeTab === 'notes' && (
               <NotesDashboard
                 categories={categories}
-                notes={notes}
-                onUpdateNote={updateNote}
+                userId={user.id}
               />
             )}
 
-            {activeTab === 'music' && (
-              <MusicPlayer />
-            )}
+            <div style={{ display: activeTab === 'music' ? 'block' : 'none' }}>
+              <MusicPlayer
+                isMinimized={false}
+                onToggleMinimize={() => {
+                  setIsMusicPlaying(true)
+                  setActiveTab('tracking')
+                }}
+                onPlayingChange={setIsMusicPlaying}
+              />
+            </div>
+          </div>
+
+
+        </div>
+      </div>
+      {/* Floating Music Player - Shows on all tabs except music */}
+      {activeTab !== 'music' && (
+      <div className="fixed bottom-6 left-6 w-80 bg-gradient-to-br from-orange-500 via-amber-500 to-orange-600 text-white shadow-2xl border-0 z-50 overflow-hidden rounded-2xl">
+        <div className="relative">
+          <div className="relative p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Music className="w-4 h-4" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Now Playing</span>
+              </div>
+              <Button
+                onClick={() => setActiveTab('music')}
+                size="icon"
+                variant="ghost"
+                className="h-8 w-8 text-white hover:bg-white/20"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-center text-white/80">Switch to Music tab to see player</p>
           </div>
         </div>
       </div>
+    )}
     </div>
   )
 }

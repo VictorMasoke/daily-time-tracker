@@ -19,13 +19,6 @@ export default async function DashboardPage() {
 
   const typedUser = user as User
 
-  // Fetch user profile
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
   // Fetch coffee entries
   const { data: entries } = await supabase
     .from("coffee_entries")
@@ -44,7 +37,6 @@ export default async function DashboardPage() {
     }>
       <DashboardClient
         user={typedUser}
-        profile={profile}
         initialTasks={entries || []}
       />
     </Suspense>

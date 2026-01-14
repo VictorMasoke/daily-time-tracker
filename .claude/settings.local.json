@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(psql:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(cmd /c \"taskkill /PID 31852 /F\")",
+      "Bash(powershell -Command \"Stop-Process -Id 31852 -Force\")"
+    ]
+  }
+}
